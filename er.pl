@@ -6,22 +6,18 @@
 %%% TODO
 %   Is regexp con eccezione predicato senza argomenti e ordine
 
+%%% !!!! ricordo male o antoniotti aveva detto che non voleva usassimo il ___ not ___? !!!
+
 is_regexp(RE) :-
     atomic(RE),
     !.
 is_regexp(RE) :-
-    % Vero per qualunque termine compound
-    % il cui funtore non sia un operatore,
-    % accettabili compound con arita' zero
-    compound_name_arguments(RE, Functor, _),
-    not(is_operator(Functor)),
-    !.
-is_regexp(RE) :-
-    % Falsifica nel caso in cui un
-    % operatore non abbia argomenti
-    compound_name_arguments(RE, _, []), 
+    \+ arg(_, RE, _),
     !,
-    fail.
+    RE \= seq(),
+    RE \= or(),
+    RE \= star(),
+    RE \= plus().
 is_regexp(RE) :-
     RE =.. [seq | REs],
     !,
@@ -38,17 +34,15 @@ is_regexp(RE) :-
     RE =.. [plus, Inner_RE],
     !,
     is_regexp(Inner_RE).
+is_regexp(RE) :-
+    compound(RE).
 
 is_regexp_list([RE]) :-
-    is_regexp(RE).
+    is_regexp(RE),
+    !.
 is_regexp_list([RE | REs]) :-
     is_regexp(RE),
     is_regexp_list(REs).
-
-is_operator(seq).
-is_operator(or).
-is_operator(star).
-is_operator(plus).
 
 nfa_regexp_comp(FA_Id, RE) :-
     nonvar(FA_Id),
@@ -64,31 +58,24 @@ nfa_regexp_comp(FA_Id, RE, Initial, Final) :-
     atomic(RE),
     assert(nfa_delta(FA_Id, Initial, RE, Final)).
 
+% Riconosce compound di arita' 0,
+% il predicato non viene mai valutato
+% su compound dal funtore riservato perche'
+% non sono Regexp
 nfa_regexp_comp(FA_Id, RE, Initial, Final) :-
-    RE =.. [Op | REs],
-    nfa_regexp_comp(FA_Id, Op, REs, Initial, Final).
-
-nfa_regexp_comp(FA_Id, RE, Initial, Final) :-
-    RE =.. [Op | REs],
-    nfa_regexp_comp(FA_Id, Op, REs, Initial, Final).
-
-nfa_regexp_comp(FA_Id, RE, Initial, Final) :-
-    RE =.. [Op | REs],
-    nfa_regexp_comp(FA_Id, Op, REs, Initial, Final).
-
-% Riconosce compound che non siano riservati
-nfa_regexp_comp(FA_Id, RE, Initial, Final) :-
-    compound_name_arguments(RE, _, _),
+    \+ arg(_, RE, _),
     assert(nfa_delta(FA_Id, Initial, RE, Final)).
 
-%%% Compound riservati con arità0 !!! Eliminare (?)
-nfa_regexp_comp(_, RE, _, _) :-
-    compound_name_arguments(RE, _, []),
-    !,
-    fail.
-    %%% Throw error, NON DOVREBBE SERVIRE DOPO IS_REGEX
+nfa_regexp_comp(FA_Id, RE, Initial, Final) :-
+    RE =.. [Op | REs],
+    nfa_regexp_comp(FA_Id, Op, REs, Initial, Final).
 
-% Generalizzabile?
+% Riconosce come simbolo quasiasi compound
+% che non abbia un funtore riservato
+nfa_regexp_comp(FA_Id, RE, Initial, Final) :-
+    compound(RE),
+    assert(nfa_delta(FA_Id, Initial, RE, Final)).
+
 nfa_regexp_comp(FA_Id, seq, [RE], Initial, Final) :-
     nfa_regexp_comp(FA_Id, RE, Initial, Final).
 nfa_regexp_comp(FA_Id, seq, [RE | REs], Initial, Final) :-
