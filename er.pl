@@ -2,6 +2,9 @@
 %   Rivedere commenti prima consegna, terminologia "riconosce" non
 %   adeguata nel contesto (vero se...)
 
+%%%TODO
+% Listing e predicati accessori
+
 
 %%% TODO
 %   Is regexp con eccezione predicato senza argomenti e ordine
@@ -12,6 +15,7 @@ is_regexp(RE) :-
     atomic(RE),
     !.
 is_regexp(RE) :-
+    %%% TODO \+ NON PERMESSO
     \+ arg(_, RE, _),
     !,
     RE \= seq(),
@@ -86,9 +90,9 @@ nfa_regexp_comp(FA_Id, seq, [RE | REs], Initial, Final) :-
 nfa_regexp_comp(FA_Id, or, [RE], Initial, Final) :-
     gensym(q, Internal_Initial),
     gensym(q, Internal_Final),
-    assert(nfa_delta(FA_Id, Initial, epsilon, Internal_Initial)),
+    assert(nfa_delta(FA_Id, Initial, Internal_Initial)),
     nfa_regexp_comp(FA_Id, RE, Internal_Initial, Internal_Final),
-    assert(nfa_delta(FA_Id, Internal_Final, epsilon, Final)).
+    assert(nfa_delta(FA_Id, Internal_Final, Final)).
 nfa_regexp_comp(FA_Id, or, [RE | REs], Initial, Final) :-
     nfa_regexp_comp(FA_Id, or, [RE], Initial, Final),
     nfa_regexp_comp(FA_Id, or, REs, Initial, Final).
@@ -97,14 +101,14 @@ nfa_regexp_comp(FA_Id, or, [RE | REs], Initial, Final) :-
 nfa_regexp_comp(FA_Id, plus, [RE], Initial, Final) :-
     gensym(q, Internal_Initial),
     gensym(q, Internal_Final),
-    assert(nfa_delta(FA_Id, Initial, epsilon, Internal_Initial)),
+    assert(nfa_delta(FA_Id, Initial, Internal_Initial)),
     nfa_regexp_comp(FA_Id, RE, Internal_Initial, Internal_Final),
-    assert(nfa_delta(FA_Id, Internal_Final, epsilon, Internal_Initial)),
-    assert(nfa_delta(FA_Id, Internal_Final, epsilon, Final)).
+    assert(nfa_delta(FA_Id, Internal_Final, Internal_Initial)),
+    assert(nfa_delta(FA_Id, Internal_Final, Final)).
 
 nfa_regexp_comp(FA_Id, star, [RE], Initial, Final) :-
     nfa_regexp_comp(FA_Id, plus, [RE], Initial, Final),
-    assert(nfa_delta(FA_Id, Initial, epsilon, Final)).
+    assert(nfa_delta(FA_Id, Initial, Final)).
 
 
 nfa_test(FA_Id, Input) :-
@@ -117,7 +121,7 @@ nfa_test(FA_Id, [Input | Inputs], State) :-
     nfa_delta(FA_Id, State, Input, Next),
     nfa_test(FA_Id, Inputs, Next).
 nfa_test(FA_Id, Input, State) :-
-    nfa_delta(FA_Id, State, epsilon, Next),
+    nfa_delta(FA_Id, State, Next),
     nfa_test(FA_Id, Input, Next).
 nfa_test(FA_Id, [], State) :-
     nfa_final(FA_Id, State).
@@ -125,4 +129,5 @@ nfa_test(FA_Id, [], State) :-
 :- dynamic
     nfa_initial/2,
     nfa_delta/4,
+    nfa_delta/3,
     nfa_final/2.
