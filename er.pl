@@ -5,6 +5,9 @@
 %%%TODO
 % Listing e predicati accessori
 
+%%%
+% Indentare su EMACS
+
 
 %%% TODO
 %   Is regexp con eccezione predicato senza argomenti e ordine
@@ -15,13 +18,22 @@ is_regexp(RE) :-
     atomic(RE),
     !.
 is_regexp(RE) :-
-    %%% TODO \+ NON PERMESSO
-    \+ arg(_, RE, _),
+    % Vero per qualunque termine compound
+    % il cui funtore non sia un operatore,
+    % accettabili compound con arita' zero
+    compound_name_arguments(RE, Functor, _),
+    Functor \= seq,
+    Functor \= or,
+    Functor \= star,
+    Functor \= plus,
+    !.
+is_regexp(RE) :-	
+    % Falsifica nel caso in cui un
+    % operatore non abbia argomenti
+    compound_name_arguments(RE, _, []),
     !,
-    RE \= seq(),
-    RE \= or(),
-    RE \= star(),
-    RE \= plus().
+    fail.
+
 is_regexp(RE) :-
     RE =.. [seq | REs],
     !,
@@ -31,15 +43,18 @@ is_regexp(RE) :-
     !,
     is_regexp_list(REs).
 is_regexp(RE) :-
-    RE =.. [star, Inner_RE],
+    RE =.. [star | REs],
     !,
+    REs = [Inner_RE],
     is_regexp(Inner_RE).
 is_regexp(RE) :-
-    RE =.. [plus, Inner_RE],
+    RE =.. [plus | REs],
     !,
+    REs = [Inner_RE],
     is_regexp(Inner_RE).
-is_regexp(RE) :-
-    compound(RE).
+% Necessario?
+%is_regexp(RE) :-
+%    compound(RE).
 
 is_regexp_list([RE]) :-
     is_regexp(RE),
@@ -73,6 +88,11 @@ nfa_regexp_comp(FA_Id, RE, Initial, Final) :-
 nfa_regexp_comp(FA_Id, RE, Initial, Final) :-
     RE =.. [Op | REs],
     nfa_regexp_comp(FA_Id, Op, REs, Initial, Final).
+
+
+%%TODO nfa comp a 5 argomenti puo' essere semplificato a 4 (likely)
+%% UTILE PER NON RICHIEDERE LISTA PER PLUS E STAR
+
 
 % Riconosce come simbolo quasiasi compound
 % che non abbia un funtore riservato
