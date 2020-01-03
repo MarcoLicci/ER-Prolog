@@ -63,6 +63,11 @@ is_regexp_list([RE | REs]) :-
     is_regexp(RE),
     is_regexp_list(REs).
 
+nfa_regexp_comp(FA_Id, _) :-
+    nfa_initial(FA_Id, _),
+    !,
+    fail.
+
 nfa_regexp_comp(FA_Id, RE) :-
     nonvar(FA_Id),
     is_regexp(RE),
@@ -82,7 +87,7 @@ nfa_regexp_comp(FA_Id, RE, Initial, Final) :-
 % su compound dal funtore riservato perche'
 % non sono Regexp
 nfa_regexp_comp(FA_Id, RE, Initial, Final) :-
-    \+ arg(_, RE, _),
+    compound_name_arguments(RE, _, []),
     assert(nfa_delta(FA_Id, Initial, RE, Final)).
 
 nfa_regexp_comp(FA_Id, RE, Initial, Final) :-
@@ -145,6 +150,22 @@ nfa_test(FA_Id, Input, State) :-
     nfa_test(FA_Id, Input, Next).
 nfa_test(FA_Id, [], State) :-
     nfa_final(FA_Id, State).
+
+nfa_clear(FA_Id) :-
+    retractall(nfa_initial(FA_Id, _)),
+    retractall(nfa_delta(FA_Id, _, _, _)),
+    retractall(nfa_delta(FA_Id, _, _)),
+    retractall(nfa_final(FA_Id, _)).
+nfa_clear() :-
+    nfa_clear(_).
+
+nfa_list(FA_Id) :-
+    listing(nfa_initial(FA_Id, _)),
+    listing(nfa_delta(FA_Id, _, _, _)),
+    listing(nfa_delta(FA_Id, _, _)),
+    listing(nfa_final(FA_Id, _)).
+nfa_list() :-
+    nfa_list(_).
 
 :- dynamic
     nfa_initial/2,
