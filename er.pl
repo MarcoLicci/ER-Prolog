@@ -52,9 +52,6 @@ is_regexp(RE) :-
     !,
     REs = [Inner_RE],
     is_regexp(Inner_RE).
-% Necessario?
-%is_regexp(RE) :-
-%    compound(RE).
 
 is_regexp_list([RE]) :-
     is_regexp(RE),
@@ -79,12 +76,14 @@ nfa_regexp_comp(FA_Id, RE) :-
 
 % Riconosce atomi
 nfa_regexp_comp(FA_Id, epsilon, Initial, Final) :-
-    assert(nfa_delta(FA_Id, Initial, Final)).
+    assert(nfa_delta(FA_Id, Initial, Final)),
+    !.
 
 % Riconosce atomi
 nfa_regexp_comp(FA_Id, RE, Initial, Final) :-
     atomic(RE),
-    assert(nfa_delta(FA_Id, Initial, RE, Final)).
+    assert(nfa_delta(FA_Id, Initial, RE, Final)),
+    !.
 
 % Riconosce compound di arita' 0,
 % il predicato non viene mai valutato
@@ -92,11 +91,13 @@ nfa_regexp_comp(FA_Id, RE, Initial, Final) :-
 % non sono Regexp
 nfa_regexp_comp(FA_Id, RE, Initial, Final) :-
     compound_name_arguments(RE, _, []),
-    assert(nfa_delta(FA_Id, Initial, RE, Final)).
+    assert(nfa_delta(FA_Id, Initial, RE, Final)),
+    !.
 
 nfa_regexp_comp(FA_Id, RE, Initial, Final) :-
     RE =.. [Op | REs],
-    nfa_regexp_comp(FA_Id, Op, REs, Initial, Final).
+    nfa_regexp_comp(FA_Id, Op, REs, Initial, Final),
+    !.
 
 
 %%TODO nfa comp a 5 argomenti puo' essere semplificato a 4 (likely)
@@ -151,7 +152,8 @@ nfa_test(FA_Id, [Input | Inputs], State) :-
     nfa_test(FA_Id, Inputs, Next).
 nfa_test(FA_Id, Input, State) :-
     nfa_delta(FA_Id, State, Next),
-    nfa_test(FA_Id, Input, Next).
+    nfa_test(FA_Id, Input, Next),
+    !.
 nfa_test(FA_Id, [], State) :-
     nfa_final(FA_Id, State).
 
