@@ -78,6 +78,10 @@ nfa_regexp_comp(FA_Id, RE) :-
     nfa_regexp_comp(FA_Id, RE, Initial, Final).
 
 % Riconosce atomi
+nfa_regexp_comp(FA_Id, epsilon, Initial, Final) :-
+    assert(nfa_delta(FA_Id, Initial, Final)).
+
+% Riconosce atomi
 nfa_regexp_comp(FA_Id, RE, Initial, Final) :-
     atomic(RE),
     assert(nfa_delta(FA_Id, Initial, RE, Final)).
