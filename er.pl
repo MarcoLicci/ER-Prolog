@@ -1,18 +1,10 @@
-%%% TODO tutti i cut
+%%% TODO
 %   Rivedere commenti prima consegna, terminologia "riconosce" non
 %   adeguata nel contesto (vero se...)
-
-%%%TODO
-% Listing e predicati accessori
 
 %%%
 % Indentare su EMACS
 
-
-%%% TODO
-%   Is regexp con eccezione predicato senza argomenti e ordine
-
-%%% !!!! ricordo male o antoniotti aveva detto che non voleva usassimo il ___ not ___? !!!
 
 is_regexp(RE) :-
     atomic(RE),
@@ -100,10 +92,6 @@ nfa_regexp_comp(FA_Id, RE, Initial, Final) :-
     !.
 
 
-%%TODO nfa comp a 5 argomenti puo' essere semplificato a 4 (likely)
-%% UTILE PER NON RICHIEDERE LISTA PER PLUS E STAR
-
-
 % Riconosce come simbolo quasiasi compound
 % che non abbia un funtore riservato
 nfa_regexp_comp(FA_Id, RE, Initial, Final) :-
@@ -145,17 +133,24 @@ nfa_test(FA_Id, Input) :-
     %%%% TODO Verifica input
     %%%% Throw nfa not found (?)
     nfa_initial(FA_Id, State),
-    nfa_test(FA_Id, Input, State).
-
-nfa_test(FA_Id, [Input | Inputs], State) :-
-    nfa_delta(FA_Id, State, Input, Next),
-    nfa_test(FA_Id, Inputs, Next).
-nfa_test(FA_Id, Input, State) :-
-    nfa_delta(FA_Id, State, Next),
-    nfa_test(FA_Id, Input, Next),
+    nfa_accept(FA_Id, State, Input, []),
     !.
-nfa_test(FA_Id, [], State) :-
+
+nfa_accept(FA_Id, State, [], _) :-
     nfa_final(FA_Id, State).
+nfa_accept(FA_Id, State, [Input | Inputs], _) :-
+    nfa_delta(FA_Id, State, Input, Next),
+    nfa_accept(FA_Id, Next, Inputs, []).
+nfa_accept(FA_Id, State, Inputs, Visited) :-
+    nfa_delta(FA_Id, State, Next),
+    not_member(State, Visited),
+    nfa_accept(FA_Id, Next, Inputs, [State | Visited]).
+
+not_member(Elem, List) :-
+    member(Elem, List),
+    !,
+    fail.
+not_member(_, _).    
 
 nfa_clear(FA_Id) :-
     retractall(nfa_initial(FA_Id, _)),
