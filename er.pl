@@ -216,7 +216,7 @@ nfa_list() :-
 
 % Predicati dinamici definiti in compilazione
 :- dynamic
-    nfa_initial/2,
-    nfa_delta/4,
-    nfa_delta/3,
-    nfa_final/2.
+       nfa_initial/2,
+       nfa_delta/4,
+       nfa_delta/3,
+       nfa_final/2.
