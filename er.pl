@@ -1,30 +1,22 @@
-%%% TODO
-%   Rivedere commenti prima consegna, terminologia "riconosce" non
-%   adeguata nel contesto (vero se...)
+% Licci Marco 844774
 
-%%%
-% Indentare su EMACS
-
-%%% Verifica
-
-% is_regexp/1
 % Vero se per espressioni RE corrette
 is_regexp(RE) :-
     atomic(RE),
     !.
+% Vero per qualunque termine compound
+% il cui funtore non sia un operatore.
+% Accettabile compound con arita' zero
 is_regexp(RE) :-
-    % Vero per qualunque termine compound
-    % il cui funtore non sia un operatore.
-    % Accettabile compound con arita' zero
     compound_name_arguments(RE, Functor, _),
     Functor \= seq,
     Functor \= or,
     Functor \= star,
     Functor \= plus,
     !.
-is_regexp(RE) :-	
-    % Falsifica nel caso in cui un
-    % operatore non abbia argomenti
+% Falso nel caso in cui un
+% operatore non abbia argomenti
+is_regexp(RE) :-
     compound_name_arguments(RE, _, []),
     !,
     fail.
@@ -63,7 +55,6 @@ is_regexp_list([RE | REs]) :-
 %%% Compilazione
 %%% Generazione basata sull'algoritmo di Thompson
 
-% nfa_regexp_comp/2
 % Il predicato e' falso per identificatori FA_Id
 % gia' presenti nella base
 nfa_regexp_comp(FA_Id, _) :-
@@ -71,7 +62,6 @@ nfa_regexp_comp(FA_Id, _) :-
     !,
     fail.
 
-% nfa_regexp_comp/2
 % Vero se FA_Id e' legato e l'espressione RE e' valida.
 % Compila un NFA per RE aggiungendo alla base di dati
 % dei predicati rappresentanti le transizioni (nfa_delta/4)
@@ -87,7 +77,6 @@ nfa_regexp_comp(FA_Id, RE) :-
     assert(nfa_final(FA_Id, Final)),
     nfa_regexp_comp(FA_Id, RE, Initial, Final).
 
-% nfa_regexp_comp/4
 % Produce le transizioni relative alla stringa vuota
 nfa_regexp_comp(FA_Id, epsilon, Initial, Final) :-
     assert(nfa_delta(FA_Id, Initial, Final)),
@@ -121,20 +110,11 @@ nfa_regexp_comp(FA_Id, RE, Initial, Final) :-
 
 %  Operatore seq
 % Genera le transizioni per l'operatore seq,
-% si basa sulla possibilita' di poter ricondurre
-% il seq n-aria ad una sua versione binaria in cui
+% si basa sulla possibilita' di ricondurre
+% il seq n-ario ad una sua versione binaria in cui
 % il primo argomento coincide con quello della versione
-% n-aria mentre il secondo argomento e' costruito
-% applicando ricorsivamente il predicato binario al resto
-% degli argomenti.
-% Caso base: lista da un elemento, generate le transizioni
-% dell'automa corrispondente alla sottoespressione avente
-% statu iniziali e finali corrispondenti a quelli dell'automa
-% superiore.
-% Caso ricorsivo: Vengono generate le transizioni per la
-% prima sottoespressione e ricorsivamente quelle delle successive,
-% i sottoautomi rappresentati sono posti in sequenza avendo 
-% stato finale interno e iniziale comune
+% n-aria ed il secondo e' costruito applicando ricorsivamente
+% il predicato binario al resto degli argomenti.
 nfa_regexp_comp(FA_Id, seq, [RE], Initial, Final) :-
     nfa_regexp_comp(FA_Id, RE, Initial, Final).
 nfa_regexp_comp(FA_Id, seq, [RE | REs], Initial, Final) :-
@@ -164,9 +144,6 @@ nfa_regexp_comp(FA_Id, or, [RE | REs], Initial, Final) :-
 %  Operatore plus
 % Gestione dell'operatore plus, accettato un unico argomento,
 % l'automa generato dalla sottoespressione viene collegato
-% agli stati iniziali e finali dell'automa principale e
-% gli stati iniziali interno e fiale interno vengono collegati
-% per il riconoscimento di ripetizioni
 nfa_regexp_comp(FA_Id, plus, [RE], Initial, Final) :-
     gensym(q, Internal_Initial),
     gensym(q, Internal_Final),
@@ -185,13 +162,11 @@ nfa_regexp_comp(FA_Id, star, [RE], Initial, Final) :-
 
 %%% Test
 
-% nfa_test/2
 % Vero se l'automa accetta l'input
 nfa_test(FA_Id, Input) :-
     nfa_initial(FA_Id, State),
     nfa_accept(FA_Id, State, Input, []),
     !.
-% nfa_accet/3
 % Vero se l'automa di trova in uno stato finale
 % e la lista di input e' vuota
 nfa_accept(FA_Id, State, [], _) :-
@@ -214,9 +189,10 @@ not_member(Elem, List) :-
     member(Elem, List),
     !,
     fail.
-not_member(_, _).    
+not_member(_, _).
 
 %%% Utilita'
+
 
 % Rimozione di automi per ID
 nfa_clear(FA_Id) :-
@@ -238,7 +214,7 @@ nfa_list(FA_Id) :-
 nfa_list() :-
     nfa_list(_).
 
-% Predicati dinamici definiti nella compilazione
+% Predicati dinamici definiti in compilazione
 :- dynamic
     nfa_initial/2,
     nfa_delta/4,
