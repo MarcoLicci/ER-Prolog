@@ -1,5 +1,7 @@
 % Licci Marco 844774
 
+%%% Validazione
+
 % Vero se per espressioni RE corrette
 is_regexp(RE) :-
     atomic(RE),
@@ -192,7 +194,6 @@ not_member(Elem, List) :-
 not_member(_, _).
 
 %%% Utilita'
-
 
 % Rimozione di automi per ID
 nfa_clear(FA_Id) :-
